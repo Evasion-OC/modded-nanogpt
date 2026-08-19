@@ -11,6 +11,15 @@ world size and compute gradient-accumulation steps at runtime, so a 1- or
 2-GPU run reproduces the 8-GPU training trajectory exactly; only wall time
 changes. Later rungs must be checked per script (classification.md).
 
+MEASURED (smoke, 19 Aug 2026, Muon rung @ device_bs=32, global batch 512):
+- step_avg 3,300 ms on 1x A100, 1,700 ms on 2x = **1.94x, 97% scaling efficiency**.
+  The PCIe penalty predicted below did not materialise: with 16 accumulation
+  micro-steps per optimizer step, gradient sync amortises almost completely.
+- Full Muon rung projection: 6,200 steps x 1.70 s = **~2.9 h on 2 GPUs** (~5.7 h
+  on 1). The 45-90 min prediction below was optimistic by ~2x; kept for the record.
+- device_batch_size 64 OOMs on 40 GB (the 6.1 GB bf16 logits tensor); 32 fits.
+  Global batch unchanged, so tokens-to-target stays comparable to the records.
+
 Predictions, before measuring (kept for reconciliation, refiner-perf style):
 - bf16-era rungs at ~3-8 min on 8xH100 land at roughly 45-90 min on 2xA100,
   2-4 h on 1xA100 (GPU count x per-GPU speed x PCIe; estimate, not measurement).
