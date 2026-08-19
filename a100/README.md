@@ -19,7 +19,14 @@ Predictions, before measuring (kept for reconciliation, refiner-perf style):
 - FlexAttention on sm80 / torch 2.13 should work; smoke-tested before use.
 
 Workflow on the cluster (login node):
-  1) source ~/venvs/refiner/bin/activate && pip install huggingface_hub tqdm
+  1) Environment (ONE TIME, login node). python3.11-devel is missing on BOTH
+     login and GPU nodes, so triton cannot compile its driver shim against the
+     system python. Use a self-contained conda env instead:
+       module load Anaconda3/2025.12-1
+       conda create -y -p ~/envs/nanogpt -c conda-forge --override-channels python=3.11
+       ~/envs/nanogpt/bin/pip install --upgrade pip
+       ~/envs/nanogpt/bin/pip install torch scipy huggingface_hub tqdm
+     Jobs pick it up automatically (PATH-first activation in the sbatch files).
   2) python data/cached_fineweb10B.py 24     # shards; ~few GB per unit, needs quota
   3) sbatch a100/smoke.sbatch                # 10-step sanity, 1 then 2 GPUs
   4) RECORD=2024-10-10_Muon GPUS=2 sbatch a100/run_rung.sbatch

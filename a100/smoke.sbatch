@@ -6,7 +6,15 @@
 #SBATCH --mem=64G
 #SBATCH --time=00:40:00
 #SBATCH --output=slurm-%j.out
-source "$HOME/venvs/refiner/bin/activate" || { echo "FATAL: venv missing"; exit 1; }
+# Prefer the self-contained conda env (own python + headers, node-independent);
+# fall back to the venv only if it does not exist.
+if [ -x "$HOME/envs/nanogpt/bin/python" ]; then
+  export PATH="$HOME/envs/nanogpt/bin:$PATH"
+elif [ -x "$HOME/venvs/refiner/bin/python" ]; then
+  source "$HOME/venvs/refiner/bin/activate"
+else
+  echo "FATAL: no environment — build the conda env (a100/README, Environment)"; exit 1
+fi
 # Shared-node hygiene: keep every compile cache out of the node-local /tmp
 export TMPDIR="$HOME/tmp"
 export TORCHINDUCTOR_CACHE_DIR="$HOME/.cache/torchinductor"
