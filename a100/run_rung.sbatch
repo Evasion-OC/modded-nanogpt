@@ -8,6 +8,11 @@
 #SBATCH --output=slurm-%j.out
 # Usage: RECORD=2024-10-10_Muon GPUS=2 sbatch a100/run_rung.sbatch
 source "$HOME/venvs/refiner/bin/activate" || { echo "FATAL: venv missing"; exit 1; }
+# Shared-node hygiene: keep every compile cache out of the node-local /tmp
+export TMPDIR="$HOME/tmp"
+export TORCHINDUCTOR_CACHE_DIR="$HOME/.cache/torchinductor"
+export TRITON_CACHE_DIR="$HOME/.cache/triton"
+mkdir -p "$TMPDIR" "$TORCHINDUCTOR_CACHE_DIR" "$TRITON_CACHE_DIR"
 set -ex
 cd "$SLURM_SUBMIT_DIR"
 : "${RECORD:?set RECORD=<record dir name>}"
