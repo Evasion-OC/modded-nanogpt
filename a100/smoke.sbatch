@@ -12,6 +12,10 @@ export TMPDIR="$HOME/tmp"
 export TORCHINDUCTOR_CACHE_DIR="$HOME/.cache/torchinductor"
 export TRITON_CACHE_DIR="$HOME/.cache/triton"
 mkdir -p "$TMPDIR" "$TORCHINDUCTOR_CACHE_DIR" "$TRITON_CACHE_DIR"
+# The GPU node lacks python3.11-devel (no Python.h), which breaks triton's
+# cuda_utils build. Use a home-dir copy of the headers if one exists
+# (made once on the login node: cp -r /usr/include/python3.11 ~/pyinclude311)
+[ -d "$HOME/pyinclude311" ] && export CPATH="$HOME/pyinclude311:$CPATH"
 set -ex
 cd "$SLURM_SUBMIT_DIR"
 python - <<'PY'
