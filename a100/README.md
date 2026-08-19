@@ -19,7 +19,7 @@ Predictions, before measuring (kept for reconciliation, refiner-perf style):
 - FlexAttention on sm80 / torch 2.13 should work; smoke-tested before use.
 
 Workflow on the cluster (login node):
-  1) source ~/venvs/refiner/bin/activate
+  1) source ~/venvs/refiner/bin/activate && pip install huggingface_hub tqdm
   2) python data/cached_fineweb10B.py 24     # shards; ~few GB per unit, needs quota
   3) sbatch a100/smoke.sbatch                # 10-step sanity, 1 then 2 GPUs
   4) RECORD=2024-10-10_Muon GPUS=2 sbatch a100/run_rung.sbatch
