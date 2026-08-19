@@ -27,8 +27,16 @@ mkdir -p "$TMPDIR" "$TORCHINDUCTOR_CACHE_DIR" "$TRITON_CACHE_DIR"
 [ -d "$HOME/pyinclude311" ] && export CPATH="$HOME/pyinclude311:$CPATH"
 set -ex
 cd "$SLURM_SUBMIT_DIR"
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 : "${RECORD:?set RECORD=<record dir name>}"
 GPUS="${GPUS:-2}"
+DEVICE_BS="${DEVICE_BS:-32}"   # 40GB cards; global batch unchanged (accumulation absorbs it)
 S=$(ls records/track_1_short/$RECORD/*.py | head -1)
 mkdir -p a100/results/$RECORD
-torchrun --standalone --nproc_per_node=$GPUS "$S" 2>&1 | tee a100/results/$RECORD/run_gpus$GPUS.log
+P=a100/results/$RECORD/train_devbs$DEVICE_BS.py
+sed "s/device_batch_size : int = 64/device_batch_size : int = $DEVICE_BS/" "$S" > "$P"
+if ! grep -q "device_batch_size : int = $DEVICE_BS" "$P"; then
+  echo "WARN: this record lacks the standard device_batch_size line; running UNMODIFIED"
+  cp "$S" "$P"
+fi
+torchrun --standalone --nproc_per_node=$GPUS "$P" 2>&1 | tee "a100/results/$RECORD/run_gpus${GPUS}_bs$DEVICE_BS.log"

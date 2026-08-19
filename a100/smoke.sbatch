@@ -30,8 +30,17 @@ python - <<'PY'
 import torch; print(torch.__version__, torch.cuda.get_device_name(0))
 from torch.nn.attention.flex_attention import flex_attention  # smoke: import works on this build
 PY
-R=records/track_1_short/2024-10-10_Muon/train_gpt2.py
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+# 40GB adaptation, trajectory-preserving: halve device_batch_size (64 -> 32);
+# the script recomputes grad-accumulation from the unchanged global batch (512),
+# so the training trajectory is identical to the record run. Declared per README.
+DEVICE_BS="${DEVICE_BS:-32}"
+mkdir -p a100/tmp
+sed "s/device_batch_size : int = 64/device_batch_size : int = $DEVICE_BS/" \
+  records/track_1_short/2024-10-10_Muon/train_gpt2.py > a100/tmp/muon_bs$DEVICE_BS.py
+grep -q "device_batch_size : int = $DEVICE_BS" a100/tmp/muon_bs$DEVICE_BS.py || { echo "FATAL: batch-size sed matched nothing"; exit 1; }
+R=a100/tmp/muon_bs$DEVICE_BS.py
 # 10-minute capped runs; success = per-step timing lines appear in the log
 timeout 600 torchrun --standalone --nproc_per_node=1 $R || true
 timeout 600 torchrun --standalone --nproc_per_node=2 $R || true
-echo "SMOKE DONE — compare step times above for the 1v2 GPU scaling factor"
+echo "SMOKE DONE — compare step_avg above for the 1v2 GPU scaling factor"
