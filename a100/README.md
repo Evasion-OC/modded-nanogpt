@@ -27,9 +27,17 @@ MEASURED (first full rung, 20 Aug 2026, job 1055947): record #4, 2024-10-10_Muon
   from the record log). Dense-era rungs are projected at kappa x their record
   time; flex-era rungs get their own 600 s smoke first.
 - Final val loss **3.3114 vs the record's 3.2785** at the same step: a drift of
-  **Delta = +0.033**. It is not present at the start (their step-125 val 5.2017,
-  ours 5.1995) and from step ~5600 the two curves run parallel (+0.031..0.033
-  at every milestone), so the gap develops during training and stabilises.
+  **Delta = +0.033**. The full 51-milestone trace gives its fingerprint:
+  the scripts are UNSEEDED, so inits differ (step-0 val +0.089 apart); the
+  high-LR phase erases that completely (steps 250-2500 sit within +-0.005 with
+  flipping sign — pure numerics noise); then the gap grows monotonically
+  through the LR-decay half (+0.010 at 3750, +0.020 at 4375, +0.026 at 5000,
+  +0.033 at 6200, decelerating). A small persistent bias that only integrates
+  once the learning rate anneals.
+- **It is outside run-to-run noise, measurably.** The repo's own ValueEmbed dir
+  holds 38 same-config runs; their README computes std 0.0040 and our
+  recomputation over the logs agrees exactly (mean 3.2776, std 0.0041). Delta =
+  +0.033 is therefore **~8 sigma**: systematic, not a seed artifact.
 - It is NOT gradient-accumulation rounding: this script keeps parameters — and
   therefore accumulated grads — in fp32 under bf16 autocast (model.cuda(), no
   bf16 cast), and 8-term fp32 sums cannot move a loss by 0.03. Prime suspect is
@@ -37,10 +45,15 @@ MEASURED (first full rung, 20 Aug 2026, job 1055947): record #4, 2024-10-10_Muon
   vs torch 2.4.1 / sm90 there.
 - **Attribution run A0**: the same rung with compilation disabled
   (EXTRA_ARGS=--no-compile, which comments out torch.compile via get_script).
-  If Delta moves, inductor codegen is implicated; if Delta stays, the drift
-  lives in the bf16/SDPA kernels themselves. Either way the ladder metric is
-  **Delta at the record's own step budget, every rung on our one fixed stack**,
-  so rung-to-rung comparisons stay clean. No step-extension reruns.
+  Decision rule, honest about seed noise: A0's own final val carries +-0.004,
+  so inductor is implicated only if A0 moves more than ~2 sigma = 0.008 away
+  from 3.3114; within that band, inductor is exonerated and the drift lives in
+  the bf16/SDPA kernels both paths share. In-between: one more A0 seed.
+- Ladder metric: **Delta at the record's own step budget, every rung on our one
+  fixed stack.** Since runs are unseeded on both sides, each rung's Delta
+  carries sigma_Delta ~ 0.006; individual rung Deltas under ~0.01 are noise,
+  and the reportable object is the drift pattern across all 14 rungs (the mean
+  drift is known to ~sigma/sqrt(14)). No step-extension reruns.
 
 ## Run schedule (set 20 Aug; jobs run serially on the shared 2-GPU node)
 
