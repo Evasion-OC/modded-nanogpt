@@ -31,12 +31,16 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 : "${RECORD:?set RECORD=<record dir name>}"
 GPUS="${GPUS:-2}"
 DEVICE_BS="${DEVICE_BS:-32}"   # 40GB cards; global batch unchanged (accumulation absorbs it)
-S=$(ls records/track_1_short/$RECORD/*.py | head -1)
+TAG="${TAG:-}"                 # names a variant run, e.g. TAG=eager
+SUF="${TAG:+_$TAG}"
 mkdir -p a100/results/$RECORD
-P=a100/results/$RECORD/train_devbs$DEVICE_BS.py
-sed "s/device_batch_size : int = 64/device_batch_size : int = $DEVICE_BS/" "$S" > "$P"
-if ! grep -q "device_batch_size : int = $DEVICE_BS" "$P"; then
-  echo "WARN: this record lacks the standard device_batch_size line; running UNMODIFIED"
-  cp "$S" "$P"
-fi
-torchrun --standalone --nproc_per_node=$GPUS "$P" 2>&1 | tee "a100/results/$RECORD/run_gpus${GPUS}_bs$DEVICE_BS.log"
+P=a100/results/$RECORD/train_devbs${DEVICE_BS}${SUF}.py
+# Most records ship no .py: the source is embedded in the record's log.
+# get_script.py extracts it (preferring the README-linked log when a dir holds
+# several) and applies anchor-verified adaptations. Flex-era records have no
+# standard device_batch_size line; get_script says so and runs them unmodified.
+# EXTRA_ARGS="--no-compile" builds the eager numerics-attribution variant (A0).
+# LOGFILE=<name.txt> pins a specific log inside the record dir if ever needed.
+python a100/get_script.py "records/track_1_short/$RECORD" "$P" --devbs "$DEVICE_BS" ${LOGFILE:+--log $LOGFILE} $EXTRA_ARGS
+# TIMEOUT=600 turns any rung into a smoke test (flex-era memory/step_avg audit)
+${TIMEOUT:+timeout $TIMEOUT} torchrun --standalone --nproc_per_node=$GPUS "$P" 2>&1 | tee "a100/results/$RECORD/run_gpus${GPUS}_bs${DEVICE_BS}${SUF}.log"
