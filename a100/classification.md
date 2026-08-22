@@ -29,7 +29,7 @@ peak memory before the full run.
 | 2 | 2024-06-06_AdamW | NO-SOURCE | llm.c-format .log predates the code-dump convention | — | 31.4 min | not runnable |
 | 3 | (Muon intro) | NO-SOURCE | README lists log as "none" | — | 24.9 min | not runnable |
 | 4 | 2024-10-10_Muon | **DONE 20 Aug (job 1055947)** | py | 6200 | 3.2785 / 22.3 min | **measured: 3.3114 in 2.92 h, Delta +0.033** |
-| 5 | 2024-10-14_ModernArch | READY | py | 5100 | 3.2741 / 15.2 min | ~2.0 h |
+| 5 | 2024-10-14_ModernArch | crashed 20 Aug (inductor CppCompileError: node g++ lacks -std=c++20) → conda gxx fix, rerun queued | py | 5100 | 3.2741 / 15.2 min | ~2.0 h |
 | 6 | 2024-10-17_DistributedMuon | READY | log 22d24867, compiles | 5100 | 3.2747 / 13.1 min | ~1.7 h |
 | 7 | 2024-10-18_PyTorch25 | READY | log d4bfb25f, compiles | 5100 | 3.2755 / 12.0 min | ~1.6 h |
 | 8 | 2024-11-03_UntieEmbed | READY | log d6b50d71, compiles | 4578 | 3.2762 / 10.8 min | ~1.4 h |

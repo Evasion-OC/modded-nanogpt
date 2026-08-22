@@ -25,6 +25,14 @@ mkdir -p "$TMPDIR" "$TORCHINDUCTOR_CACHE_DIR" "$TRITON_CACHE_DIR"
 # cuda_utils build. Use a home-dir copy of the headers if one exists
 # (made once on the login node: cp -r /usr/include/python3.11 ~/pyinclude311)
 [ -d "$HOME/pyinclude311" ] && export CPATH="$HOME/pyinclude311:$CPATH"
+# The node g++ predates GCC 10 and rejects -std=c++20, which inductor passes
+# when a record's compiled graph emits CPU-side C++ kernels (ModernArch and
+# every record after it; the Muon record happened not to). inductor honours
+# CXX/CC, so point it at the conda env's own compiler when installed:
+#   conda install -p ~/envs/nanogpt -c conda-forge --override-channels gxx_linux-64 gcc_linux-64
+CONDA_CXX="$HOME/envs/nanogpt/bin/x86_64-conda-linux-gnu-g++"
+if [ -x "$CONDA_CXX" ]; then export CXX="$CONDA_CXX"; export CC="${CONDA_CXX%-g++}-gcc"; fi
+echo "inductor C++ compiler: ${CXX:-system g++} -> $(${CXX:-g++} --version | head -1)"
 set -ex
 cd "$SLURM_SUBMIT_DIR"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True

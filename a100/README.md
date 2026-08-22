@@ -49,6 +49,19 @@ MEASURED (first full rung, 20 Aug 2026, job 1055947): record #4, 2024-10-10_Muon
   so inductor is implicated only if A0 moves more than ~2 sigma = 0.008 away
   from 3.3114; within that band, inductor is exonerated and the drift lives in
   the bf16/SDPA kernels both paths share. In-between: one more A0 seed.
+- **A0 MEASURED (job 1055988): eager 3.3113 vs compiled 3.3114** at step 6200,
+  and within 1e-3 at every late milestone (5000: 3.3862/3.3872; 3750:
+  3.4516/3.4521). **Inductor is exonerated**: the drift lives below the
+  compiler — sm80-vs-sm90 kernel numerics (Muon's bf16 Newton-Schulz
+  iteration is a prime candidate), autocast-policy changes between torch 2.4
+  and 2.13, or the SDPA backend. Two free measurements: torch.compile =
+  **1.94x step time** (3,284 vs 1,697 ms) and **40% less peak memory** (32.8
+  vs 19.7 GB) on this workload. Early milestones differ (step 125: 5.2192 vs
+  5.2017, step 0: 11.0211 vs 11.0150 — PyTorch's default generator has a
+  fixed seed, so the inits are plausibly identical and the step-0 gap is
+  forward-pass numerics) and the high-LR phase erases them: the late-phase
+  state is set by the stack both paths share. Next attribution lever, only if
+  the buffer window allows: one run with the SDPA math backend forced.
 - Ladder metric: **Delta at the record's own step budget, every rung on our one
   fixed stack.** Since runs are unseeded on both sides, each rung's Delta
   carries sigma_Delta ~ 0.006; individual rung Deltas under ~0.01 are noise,
@@ -77,6 +90,12 @@ Predictions, before measuring (kept for reconciliation, refiner-perf style):
 - DDP scaling on a PCIe pair will be visibly sub-linear; smoke.sbatch measures
   the 1-vs-2-GPU step-time ratio explicitly and it gets reported, not hidden.
 - FlexAttention on sm80 / torch 2.13 should work; smoke-tested before use.
+
+Environment gotcha #4 (20 Aug): rung #5 died with inductor CppCompileError —
+the node g++ rejects -std=c++20. Install a modern compiler INTO the env
+(self-contained, like the headers fix) and the sbatch exports CXX/CC to it:
+  module load Anaconda3/2025.12-1
+  conda install -y -p ~/envs/nanogpt -c conda-forge --override-channels gxx_linux-64 gcc_linux-64
 
 Workflow on the cluster (login node):
   1) Environment (ONE TIME, login node). python3.11-devel is missing on BOTH
