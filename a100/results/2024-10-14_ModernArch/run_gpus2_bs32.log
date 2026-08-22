@@ -1,0 +1,227 @@
+W0820 17:48:44.890000 2471013 site-packages/torch/distributed/run.py:874] 
+W0820 17:48:44.890000 2471013 site-packages/torch/distributed/run.py:874] *****************************************
+W0820 17:48:44.890000 2471013 site-packages/torch/distributed/run.py:874] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0820 17:48:44.890000 2471013 site-packages/torch/distributed/run.py:874] *****************************************
+using device: cuda:1
+using device: cuda:0
+Training DataLoader: total number of tokens: 800000000 across 8 files
+Validation DataLoader: total number of tokens: 100000000 across 1 files
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/home/kg1111r/modded-nanogpt/a100/results/2024-10-14_ModernArch/train_devbs32.py", line 446, in <module>
+[rank0]:     _, loss = model(x_val, y_val, return_logits=False)
+[rank0]:               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+[rank0]:     return forward_call(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/nn/parallel/distributed.py", line 1890, in forward
+[rank0]:     else self._run_ddp_forward(*inputs, **kwargs)
+[rank0]:          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/nn/parallel/distributed.py", line 1715, in _run_ddp_forward
+[rank0]:     return self.module(*inputs, **kwargs)  # type: ignore[index]
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_dynamo/eval_frame.py", line 511, in __call__
+[rank0]:     return super().__call__(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+[rank0]:     return forward_call(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_dynamo/eval_frame.py", line 1183, in compile_wrapper
+[rank0]:     raise e.remove_dynamo_frames() from None  # see TORCHDYNAMO_VERBOSE=1
+[rank0]:     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/compile_fx.py", line 1079, in _compile_fx_inner
+[rank0]:     raise InductorError(e, currentframe()).with_traceback(
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/compile_fx.py", line 1059, in _compile_fx_inner
+[rank0]:     mb_compiled_graph = fx_codegen_and_compile(
+[rank0]:                         ^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/compile_fx.py", line 1847, in fx_codegen_and_compile
+[rank0]:     return scheme.codegen_and_compile(gm, example_inputs, inputs_to_check, graph_kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/compile_fx.py", line 1608, in codegen_and_compile
+[rank0]:     compiled_module = graph.compile_to_module()
+[rank0]:                       ^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/graph.py", line 2669, in compile_to_module
+[rank0]:     return self._compile_to_module()
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/graph.py", line 2679, in _compile_to_module
+[rank0]:     mod = self._compile_to_module_lines(wrapper_code)
+[rank0]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/graph.py", line 2754, in _compile_to_module_lines
+[rank0]:     mod = PyCodeCache.load_by_key_path(
+[rank0]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/codecache.py", line 4622, in load_by_key_path
+[rank0]:     mod = _reload_python_module(key, path, set_sys_modules=set_sys_modules)
+[rank0]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/runtime/compile_tasks.py", line 35, in _reload_python_module
+[rank0]:     exec(code, mod.__dict__, mod.__dict__)
+[rank0]:   File "/home/kg1111r/.cache/torchinductor/hp/chp37etjuww4rkqy2rrexqam7sifm7pga4g5zoeiq3l7kgix4tsi.py", line 113, in <module>
+[rank0]:     cpp_fused__to_copy_arange_mul_view_2 = async_compile.cpp_pybinding(['const float*', 'float*'], r'''
+[rank0]:                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/async_compile.py", line 572, in cpp_pybinding
+[rank0]:     get_result = CppPythonBindingsCodeCache.load_pybinding_async(
+[rank0]:                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/codecache.py", line 4062, in load_pybinding_async
+[rank0]:     get_result = cls.load_async(
+[rank0]:                  ^^^^^^^^^^^^^^^
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/codecache.py", line 3786, in load_async
+[rank0]:     main_build_option.precompiled_header = _precompile_header(
+[rank0]:                                            ^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/codecache.py", line 3577, in _precompile_header
+[rank0]:     preprocessor.build()
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/cpp_builder.py", line 2571, in build
+[rank0]:     run_compile_cmd(build_cmd, cwd=_build_tmp_dir)
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/cpp_builder.py", line 718, in run_compile_cmd
+[rank0]:     _run_compile_cmd(cmd_line, cwd)
+[rank0]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/cpp_builder.py", line 713, in _run_compile_cmd
+[rank0]:     raise exc.CppCompileError(cmd, output) from e
+[rank0]: torch._inductor.exc.InductorError: CppCompileError: C++ compile error
+
+[rank0]: Command:
+[rank0]: g++ /home/kg1111r/tmp/tmpk9cgzqsv/header.hpp -D TORCH_INDUCTOR_CPP_WRAPPER -D STANDALONE_TORCH_HEADER -D TORCH_INDUCTOR_PRECOMPILE_HEADERS -D C10_USING_CUSTOM_GENERATED_MACROS -O3 -DNDEBUG -fno-omit-frame-pointer -g1 -fno-trapping-math -funsafe-math-optimizations -ffinite-math-only -fno-signed-zeros -fno-finite-math-only -fno-unsafe-math-optimizations -fmath-errno -ffp-contract=off -fexcess-precision=fast -fno-tree-loop-vectorize -march=native -fPIC -Wall -std=c++20 -Wno-unused-variable -Wno-unknown-pragmas -pedantic -fopenmp -I/home/kg1111r/envs/nanogpt/include/python3.11 -I/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/include -I/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/include/torch/csrc/api/include -E -P -o /home/kg1111r/tmp/tmpk9cgzqsv/header.i
+
+[rank0]: Output:
+[rank0]: g++: error: unrecognized command line option ‘-std=c++20’; did you mean ‘-std=c++2a’?
+
+
+[rank0]: While executing %submod_1 : [num_users=4] = call_module[target=submod_1](args = (%getitem, %l_self_modules_transformer_modules_h_modules_0_modules_attn_modules_c_q_parameters_weight_, %l_self_modules_transformer_modules_h_modules_0_modules_attn_modules_c_k_parameters_weight_, %l_self_modules_transformer_modules_h_modules_0_modules_attn_modules_c_v_parameters_weight_, %l_self_modules_transformer_modules_h_modules_0_modules_attn_modules_rotary_inv_freq, %l_self_modules_transformer_modules_h_modules_0_modules_attn_modules_c_proj_parameters_weight_, %getitem_1, %l_self_modules_transformer_modules_h_modules_0_modules_mlp_modules_c_fc_parameters_weight_, %l_self_modules_transformer_modules_h_modules_0_modules_mlp_modules_c_proj_parameters_weight_), kwargs = {})
+[rank0]: Original traceback:
+[rank0]: None
+[rank0]: Use tlparse to see full graph. (https://github.com/pytorch/tlparse?tab=readme-ov-file#tlparse-parse-structured-pt2-logs)
+
+[rank0]: Set TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS="+dynamo"
+
+[rank1]: Traceback (most recent call last):
+[rank1]:   File "/home/kg1111r/modded-nanogpt/a100/results/2024-10-14_ModernArch/train_devbs32.py", line 446, in <module>
+[rank1]:     _, loss = model(x_val, y_val, return_logits=False)
+[rank1]:               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+[rank1]:     return self._call_impl(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+[rank1]:     return forward_call(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/nn/parallel/distributed.py", line 1890, in forward
+[rank1]:     else self._run_ddp_forward(*inputs, **kwargs)
+[rank1]:          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/nn/parallel/distributed.py", line 1715, in _run_ddp_forward
+[rank1]:     return self.module(*inputs, **kwargs)  # type: ignore[index]
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_dynamo/eval_frame.py", line 511, in __call__
+[rank1]:     return super().__call__(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+[rank1]:     return self._call_impl(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+[rank1]:     return forward_call(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_dynamo/eval_frame.py", line 1183, in compile_wrapper
+[rank1]:     raise e.remove_dynamo_frames() from None  # see TORCHDYNAMO_VERBOSE=1
+[rank1]:     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/compile_fx.py", line 1079, in _compile_fx_inner
+[rank1]:     raise InductorError(e, currentframe()).with_traceback(
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/compile_fx.py", line 1059, in _compile_fx_inner
+[rank1]:     mb_compiled_graph = fx_codegen_and_compile(
+[rank1]:                         ^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/compile_fx.py", line 1847, in fx_codegen_and_compile
+[rank1]:     return scheme.codegen_and_compile(gm, example_inputs, inputs_to_check, graph_kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/compile_fx.py", line 1608, in codegen_and_compile
+[rank1]:     compiled_module = graph.compile_to_module()
+[rank1]:                       ^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/graph.py", line 2669, in compile_to_module
+[rank1]:     return self._compile_to_module()
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/graph.py", line 2679, in _compile_to_module
+[rank1]:     mod = self._compile_to_module_lines(wrapper_code)
+[rank1]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/graph.py", line 2754, in _compile_to_module_lines
+[rank1]:     mod = PyCodeCache.load_by_key_path(
+[rank1]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/codecache.py", line 4622, in load_by_key_path
+[rank1]:     mod = _reload_python_module(key, path, set_sys_modules=set_sys_modules)
+[rank1]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/runtime/compile_tasks.py", line 35, in _reload_python_module
+[rank1]:     exec(code, mod.__dict__, mod.__dict__)
+[rank1]:   File "/home/kg1111r/.cache/torchinductor/x7/cx7e2hhnwb74pzilpuizbvppn72j72sifj4pc2s3baanvlesqcyh.py", line 113, in <module>
+[rank1]:     cpp_fused__to_copy_arange_mul_view_2 = async_compile.cpp_pybinding(['const float*', 'float*'], r'''
+[rank1]:                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/async_compile.py", line 572, in cpp_pybinding
+[rank1]:     get_result = CppPythonBindingsCodeCache.load_pybinding_async(
+[rank1]:                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/codecache.py", line 4062, in load_pybinding_async
+[rank1]:     get_result = cls.load_async(
+[rank1]:                  ^^^^^^^^^^^^^^^
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/codecache.py", line 3786, in load_async
+[rank1]:     main_build_option.precompiled_header = _precompile_header(
+[rank1]:                                            ^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/codecache.py", line 3577, in _precompile_header
+[rank1]:     preprocessor.build()
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/cpp_builder.py", line 2571, in build
+[rank1]:     run_compile_cmd(build_cmd, cwd=_build_tmp_dir)
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/cpp_builder.py", line 718, in run_compile_cmd
+[rank1]:     _run_compile_cmd(cmd_line, cwd)
+[rank1]:   File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/_inductor/cpp_builder.py", line 713, in _run_compile_cmd
+[rank1]:     raise exc.CppCompileError(cmd, output) from e
+[rank1]: torch._inductor.exc.InductorError: CppCompileError: C++ compile error
+
+[rank1]: Command:
+[rank1]: g++ /home/kg1111r/tmp/tmpo7l69wuo/header.hpp -D TORCH_INDUCTOR_CPP_WRAPPER -D STANDALONE_TORCH_HEADER -D TORCH_INDUCTOR_PRECOMPILE_HEADERS -D C10_USING_CUSTOM_GENERATED_MACROS -O3 -DNDEBUG -fno-omit-frame-pointer -g1 -fno-trapping-math -funsafe-math-optimizations -ffinite-math-only -fno-signed-zeros -fno-finite-math-only -fno-unsafe-math-optimizations -fmath-errno -ffp-contract=off -fexcess-precision=fast -fno-tree-loop-vectorize -march=native -fPIC -Wall -std=c++20 -Wno-unused-variable -Wno-unknown-pragmas -pedantic -fopenmp -I/home/kg1111r/envs/nanogpt/include/python3.11 -I/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/include -I/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/include/torch/csrc/api/include -E -P -o /home/kg1111r/tmp/tmpo7l69wuo/header.i
+
+[rank1]: Output:
+[rank1]: g++: error: unrecognized command line option ‘-std=c++20’; did you mean ‘-std=c++2a’?
+
+
+[rank1]: While executing %submod_1 : [num_users=4] = call_module[target=submod_1](args = (%getitem, %l_self_modules_transformer_modules_h_modules_0_modules_attn_modules_c_q_parameters_weight_, %l_self_modules_transformer_modules_h_modules_0_modules_attn_modules_c_k_parameters_weight_, %l_self_modules_transformer_modules_h_modules_0_modules_attn_modules_c_v_parameters_weight_, %l_self_modules_transformer_modules_h_modules_0_modules_attn_modules_rotary_inv_freq, %l_self_modules_transformer_modules_h_modules_0_modules_attn_modules_c_proj_parameters_weight_, %getitem_1, %l_self_modules_transformer_modules_h_modules_0_modules_mlp_modules_c_fc_parameters_weight_, %l_self_modules_transformer_modules_h_modules_0_modules_mlp_modules_c_proj_parameters_weight_), kwargs = {})
+[rank1]: Original traceback:
+[rank1]: None
+[rank1]: Use tlparse to see full graph. (https://github.com/pytorch/tlparse?tab=readme-ov-file#tlparse-parse-structured-pt2-logs)
+
+[rank1]: Set TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS="+dynamo"
+
+[rank0]:[W820 17:49:39.436446954 ProcessGroupNCCL.cpp:1624] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+W0820 17:49:40.734000 2471013 site-packages/torch/distributed/elastic/multiprocessing/api.py:1028] Sending process 2471041 closing signal SIGTERM
+E0820 17:49:40.770000 2471013 site-packages/torch/distributed/elastic/multiprocessing/api.py:1002] failed (exitcode: 1) local_rank: 0 (pid: 2471040) of binary: /home/kg1111r/envs/nanogpt/bin/python3.11
+Traceback (most recent call last):
+  File "/home/kg1111r/envs/nanogpt/bin/torchrun", line 6, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 367, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/distributed/run.py", line 1028, in main
+    run(args)
+  File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/distributed/run.py", line 1019, in run
+    elastic_launch(
+  File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/distributed/launcher/api.py", line 194, in __call__
+    return launch_agent(
+           ^^^^^^^^^^^^^
+  File "/home/kg1111r/envs/nanogpt/lib/python3.11/site-packages/torch/distributed/launcher/api.py", line 383, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+a100/results/2024-10-14_ModernArch/train_devbs32.py FAILED
+------------------------------------------------------------
+Failures:
+[1]:
+  time      : 2026-08-20_17:49:40
+  host      : gm-hpc2-gpu001.gm-hpc2
+  rank      : 1 (local_rank: 1)
+  exitcode  : 1 (pid: 2471041) 
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-08-20_17:49:40
+  host      : gm-hpc2-gpu001.gm-hpc2
+  rank      : 0 (local_rank: 0)
+  exitcode  : 1 (pid: 2471040) 
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================
