@@ -1,3 +1,6 @@
+> **This fork:** the branch `a100-track` runs the speedrun records on two A100 GPUs and compares them with
+> the published logs. That work is in [`a100/`](a100/README.md); the rest of this README is the upstream project's.
+
 # Modded-NanoGPT
 
 This repository hosts the *NanoGPT speedrun*, in which we (collaboratively|competitively) search for the fastest algorithm to use 8 NVIDIA H100 GPUs to train a language model that attains 3.28 cross-entropy loss on the [FineWeb](https://huggingface.co/datasets/HuggingFaceFW/fineweb) validation set.

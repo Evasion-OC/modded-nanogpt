@@ -13,9 +13,9 @@ if [ -x "$HOME/envs/nanogpt/bin/python" ]; then
 elif [ -x "$HOME/venvs/refiner/bin/python" ]; then
   source "$HOME/venvs/refiner/bin/activate"
 else
-  echo "FATAL: no environment — build the conda env (a100/README, Environment)"; exit 1
+  echo "FATAL: no environment; build the conda env (a100/README.md, Running a record)"; exit 1
 fi
-# Shared-node hygiene: keep every compile cache out of the node-local /tmp
+# Keep compiler caches out of the node-local /tmp on the shared GPU node
 export TMPDIR="$HOME/tmp"
 export TORCHINDUCTOR_CACHE_DIR="$HOME/.cache/torchinductor"
 export TRITON_CACHE_DIR="$HOME/.cache/triton"
@@ -31,9 +31,8 @@ import torch; print(torch.__version__, torch.cuda.get_device_name(0))
 from torch.nn.attention.flex_attention import flex_attention  # smoke: import works on this build
 PY
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-# 40GB adaptation, trajectory-preserving: halve device_batch_size (64 -> 32);
-# the script recomputes grad-accumulation from the unchanged global batch (512),
-# so the training trajectory is identical to the record run. Declared per README.
+# 40 GB cards: device_batch_size 32 instead of 64. The script derives gradient
+# accumulation from the global batch (512 sequences), which is unchanged.
 DEVICE_BS="${DEVICE_BS:-32}"
 mkdir -p a100/tmp
 sed "s/device_batch_size : int = 64/device_batch_size : int = $DEVICE_BS/" \
@@ -43,4 +42,4 @@ R=a100/tmp/muon_bs$DEVICE_BS.py
 # 10-minute capped runs; success = per-step timing lines appear in the log
 timeout 600 torchrun --standalone --nproc_per_node=1 $R || true
 timeout 600 torchrun --standalone --nproc_per_node=2 $R || true
-echo "SMOKE DONE — compare step_avg above for the 1v2 GPU scaling factor"
+echo "Smoke runs done: compare the step_avg values above for 1 and 2 GPUs"

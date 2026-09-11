@@ -1,125 +1,88 @@
-# The A100 track
+# Running the speedrun records on A100s
 
-The speedrun's records run on 8x H100. This directory reproduces the record
-ladder on 1-2x A100-PCIE-40GB (a shared university node), measures what each
-rung is worth there, and documents which rungs are H100-only (FP8, FA3) --
-numbers the main repo does not have.
+This branch runs records from the modded-nanogpt speedrun on two A100-PCIE-40GB GPUs, one node of a
+university cluster, instead of the eight H100s the records were set on, and compares each run with
+the published log. Everything outside `a100/` is the upstream repository.
 
-Method: same fixed target as the speedrun (val loss 3.28 on FineWeb), same
-scripts. The early record scripts define the GLOBAL batch independently of
-world size and compute gradient-accumulation steps at runtime, so a 1- or
-2-GPU run reproduces the 8-GPU training trajectory exactly; only wall time
-changes. Later rungs must be checked per script (classification.md).
+## Which records can run
 
-MEASURED (smoke, 19 Aug 2026, Muon rung @ device_bs=32, global batch 512):
-- step_avg 3,300 ms on 1x A100, 1,700 ms on 2x = **1.94x, 97% scaling efficiency**.
-  The PCIe penalty predicted below did not materialise: with 16 accumulation
-  micro-steps per optimizer step, gradient sync amortises almost completely.
-- Full Muon rung projection: 6,200 steps x 1.70 s = **~2.9 h on 2 GPUs** (~5.7 h
-  on 1). The 45-90 min prediction below was optimistic by ~2x; kept for the record.
-- device_batch_size 64 OOMs on 40 GB (the 6.1 GB bf16 logits tensor); 32 fits.
-  Global batch unchanged, so tokens-to-target stays comparable to the records.
+Records #19 onward use FP8, and records from mid-2025 also use FlashAttention 3. Both need H100s.
+Records #4 to #18 use neither, so they run on an A100. Records #1 to #3 have no training script in
+the repository. `classification.md` has the details for every record directory.
 
-MEASURED (first full rung, 20 Aug 2026, job 1055947): record #4, 2024-10-10_Muon
-- 6,200 steps on 2x A100 in **2.92 h** train time, step_avg 1,696.63 ms — the
-  600 s smoke's 1,700 ms projection was exact. Peak memory 19,711 MiB.
-- **Conversion ratio kappa = 1696.63 / 216.33 = 7.84** (their 8xH100 step_avg
-  from the record log). Dense-era rungs are projected at kappa x their record
-  time; flex-era rungs get their own 600 s smoke first.
-- Final val loss **3.3114 vs the record's 3.2785** at the same step: a drift of
-  **Delta = +0.033**. The full 51-milestone trace gives its fingerprint:
-  the scripts are UNSEEDED, so inits differ (step-0 val +0.089 apart); the
-  high-LR phase erases that completely (steps 250-2500 sit within +-0.005 with
-  flipping sign — pure numerics noise); then the gap grows monotonically
-  through the LR-decay half (+0.010 at 3750, +0.020 at 4375, +0.026 at 5000,
-  +0.033 at 6200, decelerating). A small persistent bias that only integrates
-  once the learning rate anneals.
-- **It is outside run-to-run noise, measurably.** The repo's own ValueEmbed dir
-  holds 38 same-config runs; their README computes std 0.0040 and our
-  recomputation over the logs agrees exactly (mean 3.2776, std 0.0041). Delta =
-  +0.033 is therefore **~8 sigma**: systematic, not a seed artifact.
-- It is NOT gradient-accumulation rounding: this script keeps parameters — and
-  therefore accumulated grads — in fp32 under bf16 autocast (model.cuda(), no
-  bf16 cast), and 8-term fp32 sums cannot move a loss by 0.03. Prime suspect is
-  kernel-level numerics of a different stack: torch 2.13 / inductor / sm80 here
-  vs torch 2.4.1 / sm90 there.
-- **Attribution run A0**: the same rung with compilation disabled
-  (EXTRA_ARGS=--no-compile, which comments out torch.compile via get_script).
-  Decision rule, honest about seed noise: A0's own final val carries +-0.004,
-  so inductor is implicated only if A0 moves more than ~2 sigma = 0.008 away
-  from 3.3114; within that band, inductor is exonerated and the drift lives in
-  the bf16/SDPA kernels both paths share. In-between: one more A0 seed.
-- **A0 MEASURED (job 1055988): eager 3.3113 vs compiled 3.3114** at step 6200,
-  and within 1e-3 at every late milestone (5000: 3.3862/3.3872; 3750:
-  3.4516/3.4521). **Inductor is exonerated**: the drift lives below the
-  compiler — sm80-vs-sm90 kernel numerics (Muon's bf16 Newton-Schulz
-  iteration is a prime candidate), autocast-policy changes between torch 2.4
-  and 2.13, or the SDPA backend. Two free measurements: torch.compile =
-  **1.94x step time** (3,284 vs 1,697 ms) and **40% less peak memory** (32.8
-  vs 19.7 GB) on this workload. Early milestones differ (step 125: 5.2192 vs
-  5.2017, step 0: 11.0211 vs 11.0150 — PyTorch's default generator has a
-  fixed seed, so the inits are plausibly identical and the step-0 gap is
-  forward-pass numerics) and the high-LR phase erases them: the late-phase
-  state is set by the stack both paths share. Next attribution lever, only if
-  the buffer window allows: one run with the SDPA math backend forced.
-- Ladder metric: **Delta at the record's own step budget, every rung on our one
-  fixed stack.** Since runs are unseeded on both sides, each rung's Delta
-  carries sigma_Delta ~ 0.006; individual rung Deltas under ~0.01 are noise,
-  and the reportable object is the drift pattern across all 14 rungs (the mean
-  drift is known to ~sigma/sqrt(14)). No step-extension reruns.
+## Adaptations
 
-## Run schedule (set 20 Aug; jobs run serially on the shared 2-GPU node)
+- Device batch: 32 sequences per GPU instead of 64, since 64 runs out of memory on 40 GB cards
+  (the bf16 logits tensor alone is 6.1 GB). The scripts derive gradient accumulation from the global
+  batch of 512 sequences, which stays the same.
+- Scripts: most record directories contain no `.py` file; the script that ran is
+  printed at the top of the record's log. `get_script.py` extracts it, using the log the upstream
+  README links when a directory holds several, and applies the device-batch change. Each change must
+  apply exactly once or the script stops.
+- Cluster environment: the nodes lack the Python 3.11 headers and have a GCC too old for
+  `-std=c++20`, both of which break Triton or inductor builds. Jobs therefore use a conda environment
+  with its own Python and GCC, and keep compiler caches in the home directory.
 
-| when | submit | projected wall |
+## Results so far
+
+### Step time
+
+Ten-minute test runs of the Muon record took 3,300 ms per step on one GPU and
+1,700 ms on two, a 1.94× speedup from the second GPU.
+
+### Muon record (#4)
+
+| | published run, 8× H100 | this run, 2× A100 |
 |---|---|---|
-| 20 Aug | A0 (eager Muon, sbatch --time=10:00:00) + rung #5 ModernArch | ~4-6 h + 2.0 h |
-| 21 Aug | #6 DistributedMuon, #7 PyTorch25, #8 UntieEmbed | 1.7 + 1.6 + 1.4 h |
-| 22 Aug | #9 ShortcutsTweaks, #10 CastBf16, #11 UNetDoubleLr | 1.1 + 1.0 + 0.9 h |
-| 23 Aug | flex smokes #12-#18 (TIMEOUT=600 each): peak mem + step_avg on sm80 | ~1.5 h total |
-| 24-25 Aug | flex full runs #12-#18, go/no-go per smoke | ~4-6 h total |
-| 26-31 Aug | buffer: queue contention, redos; 1-vs-2-GPU scaling pair on #5 and #11; A0 follow-up if inductor is implicated | — |
-| 1-12 Sep | no GPU needed: analysis + REPORT.md (Delta ladder, kappa by era, what-transferred taxonomy, numerics section) | — |
+| steps | 6,200 | 6,200 |
+| training time | 22.3 min | 2.92 h |
+| time per step | 216 ms | 1,697 ms |
+| final validation loss | 3.2785 | 3.3114 |
 
-That lands all compute by ~1 Sep — a month inside the October access horizon,
-with two spare weeks against surprises. After each rung: commit
-a100/results/<record>/ and push, so the repo, not the cluster, is the record.
+Peak memory on the first GPU was 19,711 MiB. The final loss is 0.033 higher than the published one. Compared
+every 125 steps, the two validation curves differ by at most 0.008, in both directions, from step
+250 to step 2,500. The gap then grows while the learning rate decays: +0.010 at step 3,750, +0.020 at 4,375,
++0.026 at 5,000 and +0.033 at 6,200. For scale, the 38 runs of a later record (ValueEmbed) logged in
+this repository have a standard deviation of 0.004 in final loss.
 
-Predictions, before measuring (kept for reconciliation, refiner-perf style):
-- bf16-era rungs at ~3-8 min on 8xH100 land at roughly 45-90 min on 2xA100,
-  2-4 h on 1xA100 (GPU count x per-GPU speed x PCIe; estimate, not measurement).
-- DDP scaling on a PCIe pair will be visibly sub-linear; smoke.sbatch measures
-  the 1-vs-2-GPU step-time ratio explicitly and it gets reported, not hidden.
-- FlexAttention on sm80 / torch 2.13 should work; smoke-tested before use.
+### With and without torch.compile
 
-Environment gotcha #4 (20 Aug): rung #5 died with inductor CppCompileError —
-the node g++ rejects -std=c++20. Install a modern compiler INTO the env
-(self-contained, like the headers fix) and the sbatch exports CXX/CC to it:
-  module load Anaconda3/2025.12-1
-  conda install -y -p ~/envs/nanogpt -c conda-forge --override-channels gxx_linux-64 gcc_linux-64
+The same record with `torch.compile` turned off finished at
+3.3113, against 3.3114 compiled, and from step 3,750 on the two runs never differ by more than 0.003,
+so the gap does not come from the compiler. Compiled steps were 1.94 times faster (1,697 against 3,284 ms) and
+used less memory (19,711 against 32,822 MiB peak). The GPU architecture, the PyTorch version (2.13 here,
+2.4.1 for the record), the attention backend and gradient accumulation have not been tested yet.
 
-Workflow on the cluster (login node):
-  1) Environment (ONE TIME, login node). python3.11-devel is missing on BOTH
-     login and GPU nodes, so triton cannot compile its driver shim against the
-     system python. Use a self-contained conda env instead:
-       module load Anaconda3/2025.12-1
-       conda create -y -p ~/envs/nanogpt -c conda-forge --override-channels python=3.11
-       ~/envs/nanogpt/bin/pip install --upgrade pip
-       ~/envs/nanogpt/bin/pip install torch scipy huggingface_hub tqdm
-     Jobs pick it up automatically (PATH-first activation in the sbatch files).
-  2) python data/cached_fineweb10B.py 24     # shards; ~few GB per unit, needs quota
-  3) sbatch a100/smoke.sbatch                # 10-step sanity, 1 then 2 GPUs
-  4) RECORD=2024-10-14_ModernArch GPUS=2 sbatch a100/run_rung.sbatch
-  5) Eager attribution variant (A0):
-       RECORD=2024-10-10_Muon GPUS=2 TAG=eager EXTRA_ARGS=--no-compile \
-         sbatch --time=10:00:00 a100/run_rung.sbatch
-  6) Flex-era smoke (memory + step_avg audit before any full flex run):
-       RECORD=2024-11-19_FlexAttention GPUS=2 TAG=smoke TIMEOUT=600 \
-         sbatch --partition=gpu-short a100/run_rung.sbatch
+### Records #5 onward
 
-Everything derives from KellerJordan/modded-nanogpt (MIT). Most records ship no
-.py — the script that ran is embedded in the record's log; a100/get_script.py
-extracts it (preferring the README-linked log when a dir holds several dozen
-side logs) and applies only declared, anchor-verified adaptations. Data
-assumption: the fineweb10B shards (kjj0/fineweb10B-gpt2) are the same frozen
-set the records trained on. Per-rung changes are declared in classification.md
-and the results table.
+The first ModernArch (#5) run stopped when inductor tried to build CPU kernels
+with the node's GCC; jobs now use the conda environment's compiler. Results for records #5 to #8 are
+not in this branch yet.
+
+## Running a record
+
+One-time setup on the login node:
+
+```bash
+module load Anaconda3/2025.12-1
+conda create -y -p ~/envs/nanogpt -c conda-forge --override-channels python=3.11
+conda install -y -p ~/envs/nanogpt -c conda-forge --override-channels gxx_linux-64 gcc_linux-64
+~/envs/nanogpt/bin/pip install torch scipy huggingface_hub tqdm
+python data/cached_fineweb10B.py 24
+```
+
+Then:
+
+```bash
+sbatch a100/smoke.sbatch                                    # ten-minute runs on 1 and 2 GPUs
+RECORD=2024-10-14_ModernArch GPUS=2 sbatch a100/run_rung.sbatch
+RECORD=2024-10-10_Muon GPUS=2 TAG=eager EXTRA_ARGS=--no-compile sbatch --time=10:00:00 a100/run_rung.sbatch
+RECORD=2024-11-19_FlexAttention GPUS=2 TAG=smoke TIMEOUT=600 sbatch --partition=gpu-short a100/run_rung.sbatch
+```
+
+Records #12 to #18 run one 64K-token sequence per GPU and were set on 80 GB cards, so each gets a
+ten-minute run (`TIMEOUT=600`) to check memory and step time before a full run. Each run writes the
+adapted script and its log to `a100/results/<record>/`.
+
+The rest of the repository is [KellerJordan/modded-nanogpt](https://github.com/KellerJordan/modded-nanogpt)
+(MIT licence).

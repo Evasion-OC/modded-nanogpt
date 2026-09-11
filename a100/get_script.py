@@ -2,8 +2,8 @@
 """Obtain a runnable training script for a record, with optional A100 adaptations.
 
 Most record directories ship no .py: the training script is embedded in the run
-log itself — the log opens with a verbatim dump of the source that ran, fenced
-between two 100-char '=' bars, followed by the environment block and step lines.
+log itself. The log opens with a verbatim copy of the source that ran, between
+two 100-character '=' lines, followed by the environment block and step lines.
 This tool prefers a real .py and otherwise extracts the embedded source. Every
 adaptation is an anchored textual edit that fails loudly if its anchor does not
 match exactly the expected number of times, and the output must pass py_compile.
@@ -16,7 +16,7 @@ Usage:
                 with whatever device_batch_size line it does have, and copies the
                 source unmodified (the sbatch surfaces the warning).
 --no-compile    eager variant: comment out 'model = torch.compile(model)' and any
-                '@torch.compile' decorators. For numerics attribution runs (A0).
+                '@torch.compile' decorators, to compare against the compiled run.
 --features      print markers used for classification (fp8/fa3/flex, iterations,
                 batch/seq settings, torch version from the log's env block).
 """
@@ -81,7 +81,7 @@ def find_source(record_dir, pinned_log=None):
 def replace_counted(src, needle, repl, what, expected=1):
     n = src.count(needle)
     if n != expected:
-        sys.exit(f"FATAL: anchor for {what} matched {n}x, expected {expected} — record needs manual handling")
+        sys.exit(f"FATAL: anchor for {what} matched {n}x, expected {expected}; record needs manual handling")
     return src.replace(needle, repl)
 
 
@@ -131,12 +131,12 @@ def main():
     if args.no_compile:
         src = replace_counted(
             src, "model = torch.compile(model)",
-            "# model = torch.compile(model)  # disabled: eager numerics-attribution variant",
+            "# model = torch.compile(model)  # disabled for the eager run",
             "model compile call")
         n_dec = len(re.findall(r"^@torch\.compile\s*$", src, re.M))
         if n_dec:
             src = re.sub(r"^@torch\.compile\s*$",
-                         "# @torch.compile  # disabled: eager numerics-attribution variant",
+                         "# @torch.compile  # disabled for the eager run",
                          src, flags=re.M)
         print(f"no-compile: model compile call commented, {n_dec} decorator(s) commented")
 

@@ -14,9 +14,9 @@ if [ -x "$HOME/envs/nanogpt/bin/python" ]; then
 elif [ -x "$HOME/venvs/refiner/bin/python" ]; then
   source "$HOME/venvs/refiner/bin/activate"
 else
-  echo "FATAL: no environment — build the conda env (a100/README, Environment)"; exit 1
+  echo "FATAL: no environment; build the conda env (a100/README.md, Running a record)"; exit 1
 fi
-# Shared-node hygiene: keep every compile cache out of the node-local /tmp
+# Keep compiler caches out of the node-local /tmp on the shared GPU node
 export TMPDIR="$HOME/tmp"
 export TORCHINDUCTOR_CACHE_DIR="$HOME/.cache/torchinductor"
 export TRITON_CACHE_DIR="$HOME/.cache/triton"
@@ -47,8 +47,8 @@ P=a100/results/$RECORD/train_devbs${DEVICE_BS}${SUF}.py
 # get_script.py extracts it (preferring the README-linked log when a dir holds
 # several) and applies anchor-verified adaptations. Flex-era records have no
 # standard device_batch_size line; get_script says so and runs them unmodified.
-# EXTRA_ARGS="--no-compile" builds the eager numerics-attribution variant (A0).
+# EXTRA_ARGS="--no-compile" runs the script with torch.compile turned off.
 # LOGFILE=<name.txt> pins a specific log inside the record dir if ever needed.
 python a100/get_script.py "records/track_1_short/$RECORD" "$P" --devbs "$DEVICE_BS" ${LOGFILE:+--log $LOGFILE} $EXTRA_ARGS
-# TIMEOUT=600 turns any rung into a smoke test (flex-era memory/step_avg audit)
+# TIMEOUT=600 stops the run after ten minutes, e.g. to check memory and step time first
 ${TIMEOUT:+timeout $TIMEOUT} torchrun --standalone --nproc_per_node=$GPUS "$P" 2>&1 | tee "a100/results/$RECORD/run_gpus${GPUS}_bs${DEVICE_BS}${SUF}.log"
